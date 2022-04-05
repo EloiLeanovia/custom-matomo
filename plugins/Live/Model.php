@@ -433,6 +433,82 @@ class Model
         return $numVisitors;
     }
 
+
+
+    private function getLastMinutesUsersForQuery($idSite, $lastMinutes, $segment, $select, $from, $where)
+    {
+        $lastMinutes = (int)$lastMinutes;
+
+        if (empty($lastMinutes)) {
+            return 0;
+        }
+
+        [$whereIdSites, $idSites] = $this->getIdSitesWhereClause($idSite, $from);
+
+        $now = null;
+        try {
+            $now = StaticContainer::get('Tests.now');
+        } catch (\Exception $ex) {
+            // ignore
+        }
+        $now = $now ?: time();
+
+        $bind   = $idSites;
+        $startDate = Date::factory($now - $lastMinutes * 60);
+        $bind[] = $startDate->toString('Y-m-d H:i:s');
+
+        $where = $whereIdSites . "AND " . $where;
+        if ($this->shouldQuerySleepInTests()) {
+            $where = ' SLEEP(1)';
+        }
+
+        $segment = new Segment($segment, $idSite, $startDate, $endDate = null);
+        $query   = $segment->getSelectQuery($select, $from, $where, $bind);
+
+        if ($this->shouldQuerySleepInTests()) {
+            $query['bind'] = [];
+        }
+
+        $query['sql'] = trim($query['sql']);
+        if (0 === stripos($query['sql'], 'SELECT')) {
+            $query['sql'] = 'SELECT /* Live.getCounters */' . mb_substr($query['sql'], strlen('SELECT'));
+        }
+
+        $query['sql'] = DbHelper::addMaxExecutionTimeHintToQuery($query['sql'], $this->getLiveQueryMaxExecutionTime());
+
+        $readerDb = Db::getReader();
+        try {
+            $visitors = $readerDb->fetchAll($query['sql'], $query['bind']);
+        } catch (Exception $e) {
+            $this->handleMaxExecutionTimeError($readerDb, $e, $segment->getOriginalString(), $startDate, Date::now(), null, 0, $query);
+            throw $e;
+        }
+
+        $visitorsNewArray = [];
+
+        foreach ($visitors as $item) {
+            array_push($visitorsNewArray, $item['user_id']);
+        }
+
+        return $visitorsNewArray;
+        // return $visitors;
+    }
+
+
+    /**
+     * This function will return an array of all users that did an action in the last 5 minutes
+     */
+    public function getConnectedUserId($idSite, $lastMinutes, $segment = false){
+        return $this->getLastMinutesUsersForQuery(
+            $idSite,
+            $lastMinutes,
+            $segment,
+            'DISTINCT user_id',
+            'log_visit',
+            'log_visit.visit_last_action_time >= ?'
+        );
+    }
+
     /**
      * @param $idSite
      * @param string $table

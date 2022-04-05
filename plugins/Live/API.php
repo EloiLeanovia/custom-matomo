@@ -8,6 +8,8 @@
  */
 namespace Piwik\Plugins\Live;
 
+use Piwik\DataTable\Row;
+
 use Exception;
 use Piwik\API\Request;
 use Piwik\Common;
@@ -101,6 +103,15 @@ class API extends \Piwik\Plugin\API
                 $counters['visitors'] = $model->getNumVisitors($idSite, $lastMinutes, $segment);
             } else {
                 $counters['visitors'] = 0;
+            }
+        }
+
+        if ($this->shouldColumnBePresentInResponse('visitorsId', $showColumns, $hideColumns)) {
+            if ($hasVisits) {
+                // $counters['visitorsId'] = $model->getConnectedUserId($idSite, $lastMinutes, $segment);
+                $counters['visitorsId'] = $model->getConnectedUserId($idSite, $lastMinutes, $segment);
+            } else {
+                $counters['visitorsId'] = [];
             }
         }
 
@@ -395,4 +406,34 @@ class API extends \Piwik\Plugin\API
 
         return $dataTable;
     }
+
+
+    public function consoleLog($msg) {
+		echo '<script type="text/javascript">' .
+          'console.log(' . $msg . ');</script>';
+	}
+
+
+    /**
+     * Another example method that returns a data table.
+     * @param int    $idSite
+     * @param string $period
+     * @param string $date
+     * @param bool|string $segment
+     * @return DataTable
+     */
+    public function getLiveLoggedInUsers($idSite, $period, $date, $segment = false)
+    {
+        $table = new DataTable();
+
+
+        $this->consoleLog(getMostRecentVisitorId($idSite, $segment));
+
+
+        $table->addRowFromArray(array(Row::COLUMNS => array('nb_visits' => 5)));
+//        $table->addRowFromArray(array(Row::COLUMNS => array('dernier user connecté' => getMostRecentVisitorId($idSite, $segment))));
+
+        return $table;
+    }
+
 }
