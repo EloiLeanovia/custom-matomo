@@ -38,6 +38,7 @@
         "RowActionDescription": "Show page performance report for this row",
         "PagePerformanceTitle": "Page performance for page with %1$s \"%2$s\"",
         "PerformanceSubcategoryHelp1": "The Performance section can help you analyse how fast your website or app is performing on the whole and help discover whether you have specific pages that significantly deviate from your averages.",
-        "PerformanceSubcategoryHelp2": "You can also find reports showing exactly how long each page of your website takes to load and what is contributing to their loading time."
+        "PerformanceSubcategoryHelp2": "You can also find reports showing exactly how long each page of your website takes to load and what is contributing to their loading time.",
+        "FrustratedUsers": "Frustrated Users"
     }
 }

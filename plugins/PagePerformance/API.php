@@ -8,6 +8,9 @@
  */
 namespace Piwik\Plugins\PagePerformance;
 
+use Piwik\DataTable;
+use Piwik\DataTable\Row;
+
 use Piwik\Archive;
 use Piwik\Piwik;
 use Piwik\Plugin\ProcessedMetric;
@@ -124,4 +127,22 @@ class API extends \Piwik\Plugin\API
         $metric = new $class();
         return $metric->getName();
     }
+
+    /**
+     * Another example method that returns a data table.
+     * @param int    $idSite
+     * @param string $period
+     * @param string $date
+     * @param bool|string $segment
+     * @return DataTable
+     */
+    public function getFrustratedUsers($idSite, $period, $date, $segment = false)
+    {
+        $table = new DataTable();
+
+        $table->addRowFromArray(array(Row::COLUMNS => array('nb_visits' => 10, 'label' => 'test')));
+
+        return $table;
+    }
+
 }
